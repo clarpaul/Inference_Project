@@ -1,5 +1,5 @@
 ---
-title: "Class Project in Two Parts: Central Limit Theorem, Inferential Data Analysis"
+title: 'Class Project in Two Parts: Central Limit Theorem & Inferential Data Analysis'
 author: "Paul Clark"
 date: "February 5, 2017"
 output:
@@ -12,40 +12,67 @@ output:
     toc: yes
     toc_depth: 5
 ---
+---
 
-Review criteria  
+# Central Limit Theorem (Simulation)
 
-Did you show where the distribution is centered at and compare it to the theoretical center of the distribution?  
+## Overview
 
-Did you show how variable it is and compare it to the theoretical variance of the distribution?  
+We investigate the *exponential* distribution in R and compare it with the Central Limit Theorem. The distribution is simulated via `rexp(n, lambda)`, and both mean and standard deviation are `1/lambda`. We set `lambda = 0.2` and investigate the distribution of 1000 samples of 40 exponentials each.
 
-Did you perform an exploratory data analysis of at least a single plot or table highlighting basic features of the data?  
+**Review criteria**  
 
-Did the student perform some relevant confidence intervals and/or tests?  
+  1. Did you show where the distribution of means is centered and compare it to the theoretical center of the population distribution?
+  2. Did you show how variable it is and compare it to the theoretical variance of the distribution?
 
-Were the results of the tests and/or intervals interpreted in the context of the problem correctly?  
+## Simulations
+We will show the properties of the distribution of the mean and variance of samples of 40 exponentials.  
 
-Did the student describe the assumptions needed for their conclusions?  
+First, we simulate the data:
+```{r exp_simulation}
+# We simulate S = 1000 samples of N = 40 exponentials each, all with lambda = 0.2,
+# storing their means and variances in a data frame
+S <- 1000
+N <- 40
+lambda <- 0.2
+sim_data <- matrix(rexp(n = S*N, rate = lambda), S, N)
+sim_mean <- apply(sim_data, 1, mean)
+sim_var <-  apply(sim_data, 1, function(x) {var(x)*N/(N-1)}) # sample variance uses N-1
+```
 
-# Central Limit Theorem (Simulation Exercise)
+### Sample Mean vs. Theoretical Mean
+Next, we show our simulated distribution of sample means and compare it to the theoretical mean of the population.
+```{r means_histogram}
+# A histogram of sample means, with vertical line showing position of theoretical mean
+# within the histogram
 
-In this project you will investigate the exponential distribution in R and compare it with the Central Limit Theorem. The exponential distribution can be simulated in R with rexp(n, lambda) where lambda is the rate parameter. The mean of exponential distribution is 1/lambda and the standard deviation is also 1/lambda. Set lambda = 0.2 for all of the simulations. You will investigate the distribution of averages of 40 exponentials. Note that you will need to do a thousand simulations.  
 
-Illustrate via simulation and associated explanatory text the properties of the distribution of the mean of 40 exponentials. You should...  
+```
+### Sample Variance vs. Theoretical Variance
+We show the sample variance and compare it to the theoretical variance of the population.
+```{r variance_histogram}
+# Following slide XX in lecture YY, a histogram of sample variances, with
+# vertical line showing position of theoretical variance within the histogram
 
-Show the sample mean and compare it to the theoretical mean of the distribution.  
+```
+### Normality
+We now show that the distribution is approximately normal.
+```{r means_and_pop_histograms}
+# A two-facet plot contrasting the randomly sampled distribution of means with
+# the randomly sampled distribution of the population
 
-Show how variable the sample is (via variance) and compare it to the theoretical variance of the distribution.  
+```
+By visual inspection, the population distibution is clearly not normal. Therefore, we focus our evaluation on the distribution of means.
+#### Mean vs. Median
+The Mean and Median of a normal distribution should be equal. This is approximately true for the distribution of means.
+```{r mean_vs_median}
 
-Show that the distribution is approximately normal.  
+```
+#### Percentage of distribution within 1 to 3 standard deviations of the mean
 
-In point 3, focus on the difference between the distribution of a large collection of random exponentials and the distribution of a large collection of averages of 40 exponentials.  
+```{r percent_of_distribution}
 
-Title (give an appropriate title) and Author Name  
-
-Overview: In a few (2-3) sentences explain what is going to be reported on.  
-
-Simulations: Include English explanations of the simulations you ran, with the accompanying R code. Your explanations should make clear what the R code accomplishes.  
+```
 
 Sample Mean versus Theoretical Mean: Include figures with titles. In the figures, highlight the means you are comparing. Include text that explains the figures and what is shown on them, and provides appropriate numbers.  
 
@@ -54,6 +81,13 @@ Sample Variance versus Theoretical Variance: Include figures (output from R) wit
 Distribution: Via figures and text, explain how one can tell the distribution is approximately normal.  
 
 # Basic Inferential Data Analysis 
+
+**Review Criteria**
+
+  3. Did you perform an exploratory data analysis of at least a single plot or table highlighting basic features of the data?
+  4. Did the student perform some relevant confidence intervals and/or tests?
+  5. Were the results of the tests and/or intervals interpreted in the context of the problem correctly?
+  6. Did the student describe the assumptions needed for their conclusions?
 
 Now in the second portion of the project, we're going to analyze the ToothGrowth data in the R datasets package.  
 
