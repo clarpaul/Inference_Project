@@ -45,7 +45,7 @@ set.seed(1234)
 sim_data <- matrix(rexp(n = S*N, rate = lambda), S, N)
 means <- apply(sim_data, 1, mean)
 variances <-  apply(sim_data, 1, function(x) {sd(x)^2}) # sample var, N-1 in denominator
-sim <- data.frame(values = sim_data[1,], means, variances)
+sim <- data.frame(population = rexp(1000, rate = lambda), means, variances)
 str(sim)
 ```
 
@@ -82,22 +82,35 @@ The vertical line shows the position of the empirical mean of the distribution o
 We can also estimate population variance using the variance of the simulated means. By the properties of variances, $\sigma^2_{pop} = n\sigma^2_{mean}$. This estimate gives `r (format(round(popvarsim_means<-N*var(sim$means),2), nsmall = 2))`, which differs by `r (format(round(diffpopvarsim_means <- popvarsim_means - 1/lambda^2,2),nsmall = 2))` from the theoretical, or `r format(round(100*diffpopvarsim_means*lambda^2,2), nsmall = 2)`%.
 
 ### Normality
-We now show that the distribution of means is becoming approximately normal.
-```{r means_and_pop_histograms}
+We now show that the distribution of means is trending away from exponential toward normal.  Our assessment will be primarily graphical.
+```{r means_and_pop_histograms, fig.cap = "Histograms of 1000 Population Values and 1000 Means of random exponentials", message=FALSE}
+# First, we re-format the data for use in ggplot
+long_sim <- gather(sim, key = Distribution, value = Measure, population:variances)
 # We construct a two-facet plot contrasting the randomly sampled distribution
 # of means with a randomly sampled distribution of the population
-
-# First, we re-format the data for use in ggplot
-
-
+long_sim_sub <- with(long_sim, long_sim[!Distribution %in% "variances",])
+g <- ggplot(data = long_sim_sub, aes(x = Measure)) + geom_histogram() +
+     facet_grid(Distribution~.) + labs(title = 
+     "The means trend toward normal, while the population values are far from it") +
+     theme(plot.title = element_text(face="italic", hjust=0.5))
+print(g)
 ```
-By visual inspection, the population distibution is clearly not normal. Therefore, we focus our evaluation on the distribution of means.  
+  
+By visual inspection, the population distibution is severely right-skewed and not normal. Therefore, we focus our evaluation of normality on the distribution of means.  
 
 #### Mean vs. Median
-The Mean and Median of a normal distribution should be equal. This is approximately true for the distribution of means.
-```{r mean_vs_median}
-
+The Mean and Median of a normal distribution should be equal. This is approximately true for the distribution of means.  
+```{r mean_vs_median, message=FALSE, fig.cap = "Histogram of means, with lines at mean and median"}
+g <- ggplot(sim, aes(x = means)) + geom_histogram() 
+g <- g + geom_vline(xintercept = mean(means), size = 1, color = "black") +
+         geom_vline(xintercept = median(means), size = 1, color = "red") +
+     labs(title = "The mean and median are approximately equal") +
+     theme(plot.title = element_text(face="italic", hjust=0.5))
+print(g)
 ```
+  
+Above, as in **Figure 1**, the black line represents the mean, whereas the red line represents the median. The equality of the two is a characteristic of a normal distribution.
+
 #### Percentage of distribution within 1 to 3 standard deviations of the mean
 
 ```{r percent_of_distribution}
