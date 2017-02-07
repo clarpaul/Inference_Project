@@ -4,6 +4,7 @@ author: "Paul Clark"
 date: "February 5, 2017"
 output:
   pdf_document:
+    fig_caption: yes
     number_sections: yes
     toc: yes
     toc_depth: 5
@@ -12,8 +13,7 @@ output:
     toc: yes
     toc_depth: 5
 ---
----
-
+***
 # Central Limit Theorem (Simulation)
 
 ## Overview
@@ -25,44 +25,74 @@ We investigate the *exponential* distribution in R and compare it with the Centr
   1. Did you show where the distribution of means is centered and compare it to the theoretical center of the population distribution?
   2. Did you show how variable it is and compare it to the theoretical variance of the distribution?
 
+We first load packages needed for the analysis.
+```{r load_packages}
+library(ggplot2)
+library(tidyr)
+```
+
+
 ## Simulations
 We will show the properties of the distribution of the mean and variance of samples of 40 exponentials.  
 
 First, we simulate the data:
-```{r exp_simulation}
-# We simulate S = 1000 samples of N = 40 exponentials each, all with lambda = 0.2,
-# storing their means and variances in a data frame
+```{r simulate}
+# We simulate S = 1000 samples of N = 40 exponentials each, all with lambda = 0.2
 S <- 1000
 N <- 40
 lambda <- 0.2
+set.seed(1234)
 sim_data <- matrix(rexp(n = S*N, rate = lambda), S, N)
-sim_mean <- apply(sim_data, 1, mean)
-sim_var <-  apply(sim_data, 1, function(x) {var(x)*N/(N-1)}) # sample variance uses N-1
+means <- apply(sim_data, 1, mean)
+variances <-  apply(sim_data, 1, function(x) {sd(x)^2}) # sample var, N-1 in denominator
+sim <- data.frame(values = sim_data[1,], means, variances)
+str(sim)
 ```
 
 ### Sample Mean vs. Theoretical Mean
-Next, we show our simulated distribution of sample means and compare it to the theoretical mean of the population.
-```{r means_histogram}
-# A histogram of sample means, with vertical line showing position of theoretical mean
-# within the histogram
-
-
+Next, we show our simulated distribution of sample means and compare it to the theoretical mean of the population.  
+```{r histogram_of_means, fig.cap = "Histogram of means of 1000 samples of 40 exponentials with theoretical mean 5",  message=FALSE}
+# We plot a histogram of sample means
+g <- ggplot(sim, aes(x = means)) + geom_histogram() 
+g <- g + geom_vline(xintercept = mean(means), size = 1) + 
+     labs(title = paste0("The simulated mean lies just below the theoretical mean",
+                        " of ", 1/lambda)) +
+     theme(plot.title = element_text(face="italic", hjust=0.5))
+print(g)
 ```
+  
+The vertical line shows the position of the empirical mean. It almost exactly equals the theoretical value $1/\lambda$, or `r 1/lambda`, for our lambda of `r lambda`.  To be precise, the difference $\mu_{simulated} - \mu_{theory}$ is `r format(round(diffmean <- mean(means) - 1/lambda, 2), nsmall=2)`, or `r format(round(100*diffmean*lambda, 2), nsmall=2)`% from theoretical.
+
 ### Sample Variance vs. Theoretical Variance
-We show the sample variance and compare it to the theoretical variance of the population.
-```{r variance_histogram}
-# Following slide XX in lecture YY, a histogram of sample variances, with
-# vertical line showing position of theoretical variance within the histogram
-
+We show the sample variance and compare it to the theoretical variance of the population.  
+```{r histogram_of_variances, fig.cap="Histogram of estimated population variances of 1000 samples of 40 exponentials", message=FALSE}
+# Following slide 7 of lecture 5 of the statistical inference course, we plot a 
+# histogram of sample variances and show its mean
+g <- ggplot(sim, aes(x = variances)) + geom_histogram() 
+g <- g + geom_vline(xintercept = mean(variances), size = 1) + 
+     labs(title=paste0("The mean of simulated variances is just below the ",
+                       "theoretical value of ", 1/lambda^2)) +
+     theme(plot.title = element_text(face="italic", hjust=0.5)) +
+     scale_x_continuous(breaks = seq(from = 0, to = 90, by = 10))
+print(g)
 ```
+  
+The vertical line shows the position of the empirical mean of the distribution of estimated population variances. The mean is again close to the theoretical value of $1/\lambda^2$, or `r 1/lambda^2`.  To be precise, the difference $\sigma^2_{simulated}-\sigma^2_{theory}$ is `r (round(diffvar <- mean(sim$variances) - 1/lambda^2,2))`, or `r round(100*diffvar*lambda^2,2)`% from theoretical.  
+
+We can also estimate population variance using the variance of the simulated means. By the properties of variances, $\sigma^2_{pop} = n\sigma^2_{mean}$. This estimate gives `r (format(round(popvarsim_means<-N*var(sim$means),2), nsmall = 2))`, which differs by `r (format(round(diffpopvarsim_means <- popvarsim_means - 1/lambda^2,2),nsmall = 2))` from the theoretical, or `r format(round(100*diffpopvarsim_means*lambda^2,2), nsmall = 2)`%.
+
 ### Normality
-We now show that the distribution is approximately normal.
+We now show that the distribution of means is becoming approximately normal.
 ```{r means_and_pop_histograms}
-# A two-facet plot contrasting the randomly sampled distribution of means with
-# the randomly sampled distribution of the population
+# We construct a two-facet plot contrasting the randomly sampled distribution
+# of means with a randomly sampled distribution of the population
+
+# First, we re-format the data for use in ggplot
+
 
 ```
-By visual inspection, the population distibution is clearly not normal. Therefore, we focus our evaluation on the distribution of means.
+By visual inspection, the population distibution is clearly not normal. Therefore, we focus our evaluation on the distribution of means.  
+
 #### Mean vs. Median
 The Mean and Median of a normal distribution should be equal. This is approximately true for the distribution of means.
 ```{r mean_vs_median}
