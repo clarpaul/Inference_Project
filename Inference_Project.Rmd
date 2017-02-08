@@ -111,17 +111,24 @@ print(g)
   
 Above, as in **Figure 1**, the black line represents the mean, whereas the red line represents the median. The equality of the two is a characteristic of a normal distribution.
 
-#### Percentage of distribution within 1 to 3 standard deviations of the mean
+#### Quantiles of distribution vs. quantiles of standard normal
 
-```{r percent_of_distribution}
+Here we compare the quantiles of the distribution of the mean with those of standard normal.  
 
+```{r quantiles_of_distribution, fig.cap="Plot of data against corresponding quantiles of standard normal"}
+qqnorm(sim$means, main = "Normal sample with some left compression and right skew")
+qqline(sim$means)
 ```
+  
+We see from the Q-Q plot above that as you move down from center (`r 1/lambda`) in the data distribution, data quantiles/values below 4 are traversed visibly slower than linearly with standard normal quantiles, indicating compression of the data's distributional mass on the left. On the other hand, as we move up from center, the data traverses its quantiles/values faster than (more than linear with) standard normal quantiles, indicating probablity mass that is spread out to the right.  In summary, the distribution exhibits some left compression and rightward skew.  
 
-Sample Mean versus Theoretical Mean: Include figures with titles. In the figures, highlight the means you are comparing. Include text that explains the figures and what is shown on them, and provides appropriate numbers.  
+However, the linear part of the Q-Q plot between -1 and +1 normal quantiles attests to the fact that the data is relatively normally distributed.  To show this, we compute the number of sample standard deviations between -1 and +1 standard normal quantiles from the center of the distribution, which should be 2 for a normal distribution.
+```{r}
+data_quantiles_stdnorm <- quantile(sim$means, probs = c(pnorm(q=-1), pnorm(q=1))) 
+(med_plus_minus <- (data_quantiles_stdnorm - median(sim$means))/sqrt(var(sim$means)))
+```
+To be precise, the number of standard deviations within 1 standard normal quantile of center are just `r format(round(100*(med_plus_minus[2]-med_plus_minus[1] - 2)/2,2),nsmall=2)`% from 2.  Correspondingly, approximately `r round(100*(pnorm(q=1)-pnorm(q=-1)),0)`%  of the probability mass of the distribution lies within 1 standard deviation of the midpoint, an attribute of a normal distribution.
 
-Sample Variance versus Theoretical Variance: Include figures (output from R) with titles. Highlight the variances you are comparing. Include text that explains your understanding of the differences of the variances.  
-
-Distribution: Via figures and text, explain how one can tell the distribution is approximately normal.  
 
 # Basic Inferential Data Analysis 
 
