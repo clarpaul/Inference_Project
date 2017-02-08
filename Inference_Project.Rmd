@@ -5,6 +5,7 @@ date: "February 5, 2017"
 output:
   pdf_document:
     fig_caption: yes
+    fig_height: 3.15
     number_sections: yes
     toc: yes
     toc_depth: 5
@@ -13,7 +14,9 @@ output:
     toc: yes
     toc_depth: 5
 ---
+This document addresses the project assignment in two parts: part 1, which is a simulation and investigation of the law of large numbers and the Central Limit Theorem, and part 2, which is an exercise in Inferential analysis.
 ***
+
 # Central Limit Theorem (Simulation)
 
 ## Overview
@@ -54,10 +57,9 @@ Next, we show our simulated distribution of sample means and compare it to the t
 ```{r histogram_of_means, fig.cap = "Histogram of means of 1000 samples of 40 exponentials with theoretical mean 5",  message=FALSE}
 # We plot a histogram of sample means
 g <- ggplot(sim, aes(x = means)) + geom_histogram() 
-g <- g + geom_vline(xintercept = mean(means), size = 1) + 
-     labs(title = paste0("The simulated mean lies just below the theoretical mean",
-                        " of ", 1/lambda)) +
-     theme(plot.title = element_text(face="italic", hjust=0.5))
+g <- g + geom_vline(xintercept = mean(means), size = 1, color = "black") + 
+     geom_vline(xintercept = median(means), size = 1, color = "red") +
+     labs(title = paste0("The simulated mean (black line) lies just below the theoretical mean of ", 1/lambda," \n The mean and median (red line) are approximately equal")) + theme(plot.title = element_text(face="italic", hjust=0.5))
 print(g)
 ```
   
@@ -79,7 +81,7 @@ print(g)
   
 The vertical line shows the position of the empirical mean of the distribution of estimated population variances. The mean is again close to the theoretical value of $1/\lambda^2$, or `r 1/lambda^2`.  To be precise, the difference $\sigma^2_{simulated}-\sigma^2_{theory}$ is `r (round(diffvar <- mean(sim$variances) - 1/lambda^2,2))`, or `r round(100*diffvar*lambda^2,2)`% from theoretical.  
 
-We can also estimate population variance using the variance of the simulated means. By the properties of variances, $\sigma^2_{pop} = n\sigma^2_{mean}$. This estimate gives `r (format(round(popvarsim_means<-N*var(sim$means),2), nsmall = 2))`, which differs by `r (format(round(diffpopvarsim_means <- popvarsim_means - 1/lambda^2,2),nsmall = 2))` from the theoretical, or `r format(round(100*diffpopvarsim_means*lambda^2,2), nsmall = 2)`%.
+We can also estimate population variance using the variance of the simulated means. By the properties of variances, $\sigma^2_{population} = N\sigma^2_{mean(N)}$. This estimate gives `r (format(round(popvarsim_means<-N*var(sim$means),2), nsmall = 2))`, which differs by `r (format(round(diffpopvarsim_means <- popvarsim_means - 1/lambda^2,2),nsmall = 2))` from the theoretical, or `r format(round(100*diffpopvarsim_means*lambda^2,2), nsmall = 2)`%.
 
 ### Normality
 We now show that the distribution of means is trending away from exponential toward normal.  Our assessment will be primarily graphical.
@@ -98,53 +100,42 @@ print(g)
   
 By visual inspection, the population distibution is severely right-skewed and not normal. Therefore, we focus our evaluation of normality on the distribution of means.  
 
-#### Mean vs. Median
-The Mean and Median of a normal distribution should be equal. This is approximately true for the distribution of means.  
-```{r mean_vs_median, message=FALSE, fig.cap = "Histogram of means, with lines at mean and median"}
-g <- ggplot(sim, aes(x = means)) + geom_histogram() 
-g <- g + geom_vline(xintercept = mean(means), size = 1, color = "black") +
-         geom_vline(xintercept = median(means), size = 1, color = "red") +
-     labs(title = "The mean and median are approximately equal") +
-     theme(plot.title = element_text(face="italic", hjust=0.5))
-print(g)
-```
-  
-Above, as in **Figure 1**, the black line represents the mean, whereas the red line represents the median. The equality of the two is a characteristic of a normal distribution.
+#### Equality of the Mean and Median
+The Mean and Median of a normal distribution should be equal. This is approximately true for our distribution of means. In **Figure 1**, the black line represents the mean, whereas the red line represents the median. 
 
-#### Quantiles of distribution vs. quantiles of standard normal
+#### Quantiles of sample distribution vs. quantiles of standard normal
 
 Here we compare the quantiles of the distribution of the mean with those of standard normal.  
 
+##### Explanation of Q-Q plot
+In the plot below, our sample data is plotted on the horizontal axis against correspoding normal quantiles (standard deviations from standard normal) associated with the empirical cumulative densities ($ECD_{q}\:'s$) of the sample data at each quantile. To obtain the probabilities, sample data points $i$ are ascendingly ordered from $1 \:to\: n$, then each point $i$ is related to a cumulative probability associated with the mid-point between points $i$ and $i-1$, calculated as $ECD_{q=5}=(i-0.5)/n$, where $n$ is the number of sampled values. This way, for example, point $i = 500$, which has sample quantile/data value $\approx 5$, is associated with cumulative probability `ECD = pnorm(q=5, mean=5, sd = sqrt(var(x)))`$\approx$`0.4995 = (500-0.5)/1000`, and so on. That relationship is inverted (via `qnorm(p)`) to make connections with the *Standard Normal Quantiles* of the chart.
+
+#### Q-Q plot for assessment of normality of the distribution of means
 ```{r quantiles_of_distribution, fig.cap="Plot of data against corresponding quantiles of standard normal"}
-qqnorm(sim$means, main = "Normal sample with some left compression and right skew")
+qqnorm(sim$means, main = "Our data is verging on normal, with some\nleft compression and right skew", ylab = "Data Values in the Sample", 
+       xlab = "Normal Quantiles for Empirical Cumulative Density of Data (qnorm(ECD))")
 qqline(sim$means)
 ```
   
-We see from the Q-Q plot above that as you move down from center (`r 1/lambda`) in the data distribution, data quantiles/values below 4 are traversed visibly slower than linearly with standard normal quantiles, indicating compression of the data's distributional mass on the left. On the other hand, as we move up from center, the data traverses its quantiles/values faster than (more than linear with) standard normal quantiles, indicating probablity mass that is spread out to the right.  In summary, the distribution exhibits some left compression and rightward skew.  
+The plot of sample data vs. corresponding quantiles of standard normal should be completely linear if our sample data is completely normal.  However, we see from the Q-Q plot above that as you move down from center (sample quantile ~$1/\lambda$=`r 1/lambda`), values of the data sample below 4 are traversed visibly slower than linearly with corresponding standard normal quantiles corresponding to the same distribution, indicating left compression. And as we move up from center, the data traverses  data values faster than linear with normal quantiles, indicating probablity mass more right skewed than normal.  In summary, the distribution is not exactly normal, but retains relics of the underlying population distribution, which strongly exhibits this compression and skew (see bottom plot in *Figure 3*).
 
-However, the linear part of the Q-Q plot between -1 and +1 normal quantiles attests to the fact that the data is relatively normally distributed.  To show this, we compute the number of sample standard deviations between -1 and +1 standard normal quantiles from the center of the distribution, which should be 2 for a normal distribution.
+However, the linear part of the Q-Q plot between -1 and +1 normal quantiles attests to the fact that the data is still trending toward normal.  To show an example, we compute the number of standard deviations of the mean between -1 and +1 standard normal quantiles from the center of the distribution, which should be 2 for a normal distribution.
 ```{r}
-data_quantiles_stdnorm <- quantile(sim$means, probs = c(pnorm(q=-1), pnorm(q=1))) 
-(med_plus_minus <- (data_quantiles_stdnorm - median(sim$means))/sqrt(var(sim$means)))
+data_quantiles_1_stdnorm <- quantile(sim$means, probs = c(pnorm(q=-1),pnorm(q=1))) 
+(med_plus_minus <- (data_quantiles_1_stdnorm - median(sim$means))/sqrt(var(sim$means)))
 ```
-To be precise, the number of standard deviations within 1 standard normal quantile of center are just `r format(round(100*(med_plus_minus[2]-med_plus_minus[1] - 2)/2,2),nsmall=2)`% from 2.  Correspondingly, approximately `r round(100*(pnorm(q=1)-pnorm(q=-1)),0)`%  of the probability mass of the distribution lies within 1 standard deviation of the midpoint, an attribute of a normal distribution.
+Above, the value names (percentages) of the vector are associated with one left and right standard normal quantile ($\pm\sqrt{variance(x)}$) from the median, `r round(pnorm(-1),1)` and `r round(pnorm(+1),1)`. To be precise, the number of standard deviations within 1 standard normal quantile of center (`r round(100*(pnorm(q=1)-pnorm(q=-1)),0)`% of the distribution) are just `r format(round(100*(med_plus_minus[2]-med_plus_minus[1] - 2)/2,2),nsmall=2)`% from 2.  This is a primary attribute of a normal distribution.
 
 
 # Basic Inferential Data Analysis 
 
+## Overview
+
+We now analyze the `ToothGrowth` data in the R `datasets` package via basic exploratory  analyses, basic summaries, and statistical tests to compare tooth growth by `supp` and `dose`. 
+
 **Review Criteria**
 
-  3. Did you perform an exploratory data analysis of at least a single plot or table highlighting basic features of the data?
-  4. Did the student perform some relevant confidence intervals and/or tests?
-  5. Were the results of the tests and/or intervals interpreted in the context of the problem correctly?
-  6. Did the student describe the assumptions needed for their conclusions?
-
-Now in the second portion of the project, we're going to analyze the ToothGrowth data in the R datasets package.  
-
-Load the ToothGrowth data and perform some basic exploratory data analyses  
-
-Provide a basic summary of the data.  
-
-Use confidence intervals and/or hypothesis tests to compare tooth growth by supp and dose. (Only use the techniques from class, even if there's other approaches worth considering)  
-
-State your conclusions and the assumptions needed for your conclusions.
+  1. Did you perform an exploratory data analysis of at least a single plot or table highlighting basic features of the data?
+  2. Did the student perform some relevant confidence intervals and/or tests?
+  3. Were the results of the tests and/or intervals interpreted in the context of the problem correctly?
+  4. Did the student describe the assumptions needed for their conclusions?
