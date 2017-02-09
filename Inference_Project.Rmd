@@ -104,7 +104,7 @@ The Mean and Median of a normal distribution should be equal. This is approximat
 Here we compare the quantiles of the distribution of the mean with those of standard normal.  
 
 #### Explanation of Q-Q plot
-In the plot below, our sample data is plotted on the horizontal axis against corresponding normal quantiles (standard deviations from standard normal) associated with the Empirical Cumulative Densities ($ECD_{q}\:'s$) of the sample data at each quantile. To obtain the cumulative densities, sample data points $i$ are ascendingly ordered from $1 \:to\: n$, then each point $i$ is related to a cumulative probability associated with the mid-point between points $i$ and $i-1$, calculated as $ECD_{q=5}=(i-0.5)/n$, where $n$ is the number of sampled values. This way, for example, point $i = 500$, which has sample quantile (data-value) $\approx 5$, is associated with cumulative probability `ECD = pnorm(q=5, mean=5, sd = sqrt(var(x)))` $\approx$ `0.4995 = (500-0.5)/1000`, and so on. That relationship is inverted (via `qnorm(p)`) to make connections with the *Standard Normal Quantiles* of the chart.
+In the plot below, our sample data is plotted on the vertical axis against corresponding normal quantiles (standard deviations from standard normal) associated with the Empirical Cumulative Densities ($ECD_{q}\:'s$) of the sample data at each quantile on the horizontal axis. To obtain the cumulative densities, sample data points $i$ are ascendingly ordered from $1 \:to\: n$, then each point $i$ is related to a cumulative probability associated with the mid-point between points $i$ and $i-1$, calculated as $ECD_{q=qnorm(ECD)}=(i-0.5)/n$, where $n$ is the number of sampled values. This way, for example, point $i = 500$, which has sample quantile (data-value) $\approx 5$, is associated with cumulative probability `ECD = pnorm(q=5, mean=5, sd = sqrt(var(x)))` $\approx$ `0.4995 = (500-0.5)/1000`, and so on. That relationship is inverted (via `qnorm(p)`) to make connections with the *Standard Normal Quantiles* of the chart.
 
 #### Q-Q plot for assessment of normality of the distribution of means
 ```{r quantiles_of_distribution, fig.cap="Plot of data against corresponding quantiles of standard normal"}
@@ -123,7 +123,7 @@ However, the linear part of the Q-Q plot, between -1 and +1 normal quantiles att
 data_quantiles_1_stdnorm <- quantile(sim$means, probs = c(pnorm(q=-1),pnorm(q=1))) 
 (med_plus_minus <- (data_quantiles_1_stdnorm - median(sim$means))/sqrt(var(sim$means)))
 ```
-The number of standard deviations inside plus or minus 1 normal quantile of center (`r round(100*(pnorm(q=1)-pnorm(q=-1)),0)`%) of our distribution is just `r format(round(100*(med_plus_minus[2]-med_plus_minus[1] - 2)/2,2),nsmall=2)`% from 2. Above, the names attribute of the vector showing the values of the normal quantiles are the cumulative probabilities associated with the quantiles 1 left and 1 right of the median ($\pm\sqrt{variance(x)}$).  
+The number of standard deviations inside plus or minus 1 normal quantile of center (`r round(100*(pnorm(q=1)-pnorm(q=-1)),0)`%) of our distribution is just `r format(round(100*(med_plus_minus[2]-med_plus_minus[1] - 2)/2,2),nsmall=2)`% from 2. 
 
 # Basic Inferential Data Analysis  
 ## Overview
@@ -207,7 +207,7 @@ Substitution of orange juice (OJ) for ascorbic acid (VC) appears significantly a
 
   *  For applicability of the t distribution, the underlying data should theoretically be normal
   *  The guinea pigs are randomized across the various combinations of `supp` and `dose`
-  *  The staff who measure tooth length are blind to the experimental conditions of each guinea pig
+  *  The researchers are blind to the experimental conditions of each guinea pig
 
 
 
