@@ -21,8 +21,22 @@ This document addresses a project assignment with two parts: Part 1, which is a 
 
 ## Overview
 
-We investigate the *exponential* distribution in R and compare it with the Central Limit Theorem. The distribution is simulated via `rexp(n, lambda)`, and both mean and standard deviation are `1/lambda`. We set `lambda = 0.2` and investigate the distribution of 1000 samples of 40 exponentials each.
+We investigate the *exponential* distribution in R and compare it with the Central Limit Theorem. The distribution is simulated via `rexp(n, lambda)`, and both mean and standard deviation are `1/lambda`. We set `lambda = 0.2` and investigate the distribution of 1000 samples of 40 exponentials each.  
 
+## Summary Conclusions
+Simulation is consistent with theory.  
+
+  1.  The statistics of the distribution of sample means are approximately equal to their theoretical values, consistent with the properties of means and variances  
+  
+      a.  $\mu_{mean} \approx \mu_{population}$
+      b.  $\sigma^2_{mean} \approx \sigma^2_{population(N)}/N$  
+  2.  The distribution of means is right-skewed but approximately normal, consistent with the Central Limit Theorem  
+  
+      a.  From a simple plot, the underlying population distribution (exponential) is extremely right skewed.
+      b.  From a Q-Q plot, the distribution of means of 40 observations is *slightly* right-skewed.
+      c.  Nevertheless, the distribution of means is approximately normal over a relatively wide range of cumulative density.
+
+## Preliminaries
 We first load packages needed for the analysis.
 ```{r load_packages}
 library(ggplot2)
@@ -46,7 +60,7 @@ str(sim)
 ```
 
 ### Sample Mean vs. Theoretical Mean
-Next, we show our simulated distribution of sample means and compare it to the theoretical mean of the population.  
+In _**Figure 1**_, we show our simulated distribution of sample means and compare it to the theoretical mean of the population.  
 ```{r histogram_of_means, fig.cap = "Histogram of means of 1000 samples of 40 exponentials with theoretical mean 5",  message=FALSE}
 # We plot a histogram of sample means
 g <- ggplot(sim, aes(x = means)) + geom_histogram() 
@@ -62,7 +76,7 @@ print(g)
 The vertical line shows the position of the empirical mean. It almost exactly equals the theoretical value $1/\lambda$, or `r 1/lambda`, for our lambda of `r lambda`.  To be precise, the difference $\mu_{simulated} - \mu_{theory}$ is `r format(round(diffmean <- mean(means) - 1/lambda, 2), nsmall=2)`, or `r format(round(100*diffmean*lambda, 2), nsmall=2)`% from theoretical.
 
 ### Sample Variance vs. Theoretical Variance
-We show the sample variance and compare it to the theoretical variance of the population.  
+In _**Figure 2**_, we show the sample variance and compare it to the theoretical variance of the population.  
 ```{r histogram_of_variances, fig.cap="Histogram of estimated population variances of 1000 samples of 40 exponentials", message=FALSE}
 # Following slide 7 of lecture 5 of the statistical inference course, we plot a 
 # histogram of sample variances and show its mean
@@ -94,17 +108,17 @@ g <- ggplot(data = long_sim_sub, aes(x = Measure)) + geom_histogram() +
 print(g)
 ```
   
-By visual inspection, the population distribution is severely right-skewed and not normal. Therefore, we focus our evaluation of normality on the distribution of means.  
+By visual inspection of _**Figure 3**_, the population distribution is severely right-skewed and not normal. The distribution of means is much closer to normal.
 
 ### Equality of the Mean and Median
 The Mean and Median of a normal distribution should be equal. This is approximately true for our distribution of means. In **Figure 1**, the black line represents the mean of means, whereas the red line represents the median. 
 
 ### Quantiles of sample distribution vs. quantiles of standard normal
 
-Here we compare the quantiles of the distribution of the mean with those of standard normal.  
+Here we compare the quantiles (data values) of the distribution of means with those of standard normal to evaluate the normality.
 
 #### Explanation of Q-Q plot
-In the plot below, our sample data is plotted on the vertical axis against corresponding normal quantiles (standard deviations from standard normal) associated with the Empirical Cumulative Densities ($ECD_{q}\:'s$) of the sample data at each quantile on the horizontal axis. To obtain the cumulative densities, sample data points $i$ are ascendingly ordered from $1 \:to\: n$, then each point $i$ is related to a cumulative probability associated with the mid-point between points $i$ and $i-1$, calculated as $ECD_{q=qnorm(ECD)}=(i-0.5)/n$, where $n$ is the number of sampled values. This way, for example, point $i = 500$, which has sample quantile (data-value) $\approx 5$, is associated with cumulative probability `ECD = pnorm(q=5, mean=5, sd = sqrt(var(x)))` $\approx$ `0.4995 = (500-0.5)/1000`, and so on. That relationship is inverted (via `qnorm(p)`) to make connections with the *Standard Normal Quantiles* of the chart.
+In **Figure 4**, our sample data is plotted on the vertical axis, and the associated normal quantiles (standard deviations from center) are plotted on the horizontal axis. The associated normal quantiles are calculated as follows: Empirical Cumulative Densities ($ECD_{q}$ values) of the sample data are calculated, and those Densities are used to calculate a normal quantile by `qnorm(ECD)`. Specifically, to obtain the cumulative densities, sample data points $i$ are ascendingly ordered from $1 \:to\: n$, then each point $i$ is related to a cumulative probability associated with the mid-point between points $i$ and $i-1$, calculated as $ECD_{q}=(i-0.5)/n$, where $n$ is the number of sampled values, and $q$ is the standard normal quantile calculated from each $ECD$. This way, for example, point $i = 500$, which has sample quantile (data value) $\approx 5$, is associated with cumulative probability `0.4995 = (500-0.5)/1000` = $ECD_{q} \approx$ `pnorm(q=0) = 0`, and so on. That relationship is inverted (e.g., via `qnorm(ECD)`) to make connections with the *Standard Normal Quantiles* $q$ on the horizontal axis of the plot.
 
 #### Q-Q plot for assessment of normality of the distribution of means
 ```{r quantiles_of_distribution, fig.cap="Plot of data against corresponding quantiles of standard normal"}
@@ -114,28 +128,34 @@ qqnorm(sim$means, main = paste0("Our data is verging on normal, with some",
 qqline(sim$means)
 ```
   
-The plot of sample data vs. corresponding quantiles of standard normal would be completely linear if our sample data was completely normal.  However, we see from the Q-Q plot above that as you move down from center (sample quantile ~$1/\lambda$=`r 1/lambda`), values of the data sample below 4 are traversed more slowly than linear with corresponding standard normal quantiles, indicating left compression (more probability density spread across a smaller range of values). And as we move up from center, the data traverses values faster than linear with the normal quantiles, indicating probability mass more right skewed than normal.  In summary, the distribution is not exactly normal, but retains relics of the underlying population distribution, which strongly exhibits this compression and skew (see bottom plot in *Figure 3*).
+The plot of sample data vs. corresponding quantiles of standard normal would be completely linear if our sample data was completely normal.  However, we see from the Q-Q plot in **Figure 4** that as you move down from center (sample quantile $\approx1/\lambda$ = `r 1/lambda`), values of the data sample below 4 are traversed more slowly than linear with corresponding standard normal quantiles, indicating left compression (more probability density spread across a smaller range of values). And as we move up from center, the data traverses values faster than linear with the normal quantiles, indicating probability mass more right skewed than normal.  In summary, the distribution is not exactly normal, but retains relics of the underlying population distribution, which strongly exhibits this compression and skew (see bottom plot in *Figure 3*).
 
 #### Number of standard deviations spanned by two normal quantiles of probability
 
-However, the linear part of the Q-Q plot, between -1 and +1 normal quantiles attests to the fact that the data is still trending toward normal.  For example, we can compute the number of standard deviations of the mean between -1 and +1 standard normal quantiles from the center of the distribution, which should be 2 for a normal distribution.
+The linear part of the Q-Q plot between -1 and +1 normal quantiles attests to the fact that the data is approximately normal.  To demonstrate this, we compute the number of standard deviations of the mean between -1 and +1 standard normal quantiles from the center of the distribution. This should be 2 for a normal distribution.
 ```{r}
 data_quantiles_1_stdnorm <- quantile(sim$means, probs = c(pnorm(q=-1),pnorm(q=1))) 
 (med_plus_minus <- (data_quantiles_1_stdnorm - median(sim$means))/sqrt(var(sim$means)))
 ```
-The number of standard deviations inside plus or minus 1 normal quantile of center (`r round(100*(pnorm(q=1)-pnorm(q=-1)),0)`%) of our distribution is just `r format(round(100*(med_plus_minus[2]-med_plus_minus[1] - 2)/2,2),nsmall=2)`% from 2. 
+The number of standard deviations within one normal quantile of the median of our distribution (i.e., the number that spans the middle `r round(100*(pnorm(q=1)-pnorm(q=-1)),0)`% of the distribution) differs from 2 by just `r format(round(100*(med_plus_minus[2]-med_plus_minus[1] - 2)/2,2),nsmall=2)`%. However, note the right skew: the center of the distribution is shifted right of normal by approximately `r round((med_plus_minus[2] + med_plus_minus[1])/2,2)` standard deviations.
 
 # Basic Inferential Data Analysis  
 ## Overview
-We now analyze the `ToothGrowth` data in the R `datasets` package via basic exploratory  analyses, summaries, and statistical tests to compare tooth growth by `supp` and `dose`. 
-We first load the primary package needed in this analysis:
+We now analyze the `ToothGrowth` data in the R `datasets` package via basic exploratory  analyses, summaries, and statistical tests to compare tooth growth by `supp` and `dose`.  
+
+## Summary Conclusions
+  1.  Increased dose of vitamin C is associated with increased tooth length, whether it is delivered via orange juice (OJ) or ascorbic acid (VC).
+  2.  At lower doses (0.5 mm and 1 mm), delivery via orange juice appears more effective than ascorbic acid.  However, we see no such impact at the 2 mm dose.  
+
+## Preliminaries
+We first load the primary package needed in this analysis and the specific dataset we will use. Note that for this analysis we also make use of ggplot2, loaded for part I of this project.
 ```{r}
 library(datasets)
+data("ToothGrowth")
 ```
 ## Exploratory Data Analysis
 We now perform basic summaries.
 ```{r}
-data("ToothGrowth")
 str(ToothGrowth)
 with(ToothGrowth, table(supp, dose))
 ```
@@ -146,7 +166,7 @@ Since we will just be performing T-tests between the various groups, it makes se
 ToothGrowth$dose <- factor(as.character(ToothGrowth$dose), levels = c("0.5", "1", "2"))
 ```
 A box-plot reveals the data's major trends (**Figure 5**).
-```{r boxplot, fig.cap="Boxplot of tooth length vs. vitamin delivery at different dosing"}
+```{r boxplot, fig.cap="Boxplot of tooth length vs. vitamin delivery method at different dosings"}
 g <- ggplot(ToothGrowth, aes(x = supp, y = len, color = supp)) +
      geom_boxplot() + facet_grid(. ~ dose) + 
      labs(title="A boxpot clearly depicts underlying trends from both variables") +
@@ -157,14 +177,14 @@ print(g)
 Teeth appear to grow longer on higher doses, and, except at `dose = 2`, they grow longer on OJ (orange juice) than on VC (ascorbic acid).  
 
 ## Tests of Significance of Inter-Group Differences
-We will test the statistical significance of the above observations using one-sided T-tests. To verify the graphically observed trends, we will take the following strategy:  
+We will test the statistical significance of the above observations using one-sided T-tests. To verify the graphically observed trends, we will take the following approach:  
 
-  1. Test two `dose` effects for each of the two fixed `supp` levels: 
-     * Differences between dose levels 0.5 and 1
-     * Differences between dose levels 1 and 2
-  2. Within each of the three `dose` levels, test the difference between OJ and VC  
+  1. Test two `dose` effects for each `supp` level: 
+     * Hypothesis that mean length is greater at dose 1 than dose 0.5
+     * Hypothesis that mean length is greater at dose 2 than dose 1
+  2. Within each of the three `dose` levels, test the hypothesis that mean length of teeth is greater for guinea pigs given OJ than VC.  
   
-This means we will be carrying out 7 tests. We will extract P-values for each test, and reject the null at level $\alpha$ = 0.025.  
+This implies we will be carrying out 7 tests. We will extract P-values for each test, and reject the null at level $\alpha$ = 0.025.  
 
 First, we carry out the inter-dose tests...
 ```{r dosage_effect}
@@ -201,11 +221,19 @@ Now, we test supplement changes (choice of OJ or VC) at fixed dosage.
                               )
 )
 ```
-Substitution of orange juice (OJ) for ascorbic acid (VC) appears significantly associated with increase in tooth length for dosing of 0.5 and 1, but not for 2.
+Substitution of orange juice (OJ) for ascorbic acid (VC) appears significantly associated with increase in tooth length for dosing of 0.5 and 1, but not for 2.  
+
+Note that the hypothesis that mean OJ group length is greater than VC group length for dose of 2 is poorly formulated since the mean observed length for OJ subjects (`r round(with(ToothGrowth, mean(len[dose == "2" & supp == "OJ"])),2)`) is not greater than that for VC subjects (`r round(with(ToothGrowth, mean(len[dose == "2" & supp == "VC"])),2)`).  Therefore, we also perform a two-sided test for this case, testing the hypothesis that there is any difference in means when dose = 2.
+```{r OJ_vs_VC_dose_2}
+attach(ToothGrowth)
+t.test(len[dose == "2" & supp == "OJ"], len[dose == "2" & supp == "VC"],
+       alt = "two.sided")
+```
+From the p-value and confidence interval above, we see that at dose of 2, there is no evidence to support a claim that mean tooth length differs for guinea pigs given OJ and  guinea pigs given VC. For the highest dose, the impact of vitamin C delivery method drops to 0.
 
 ## Key Assumptions
 
-  *  For applicability of the t distribution, the underlying data should theoretically be normal
+  *  For applicability of the t distribution, the underlying data should theoretically be normal and iid
   *  The guinea pigs are randomized across the various combinations of `supp` and `dose`
   *  The researchers are blind to the experimental conditions of each guinea pig
 
