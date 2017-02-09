@@ -14,19 +14,14 @@ output:
     toc: yes
     toc_depth: 5
 ---
-This document addresses the project assignment in two parts: part 1, which is a simulation and investigation of the law of large numbers and the Central Limit Theorem, and part 2, which is an exercise in Inferential analysis.
-***
+  
+This document addresses a project assignment with two parts: Part 1, which is a simulation and investigation of the law of large numbers and the Central Limit Theorem, and Part 2, which is an exercise in Inferential analysis.  
 
 # Central Limit Theorem (Simulation)
 
 ## Overview
 
 We investigate the *exponential* distribution in R and compare it with the Central Limit Theorem. The distribution is simulated via `rexp(n, lambda)`, and both mean and standard deviation are `1/lambda`. We set `lambda = 0.2` and investigate the distribution of 1000 samples of 40 exponentials each.
-
-**Review criteria**  
-
-  1. Did you show where the distribution of means is centered and compare it to the theoretical center of the population distribution?
-  2. Did you show how variable it is and compare it to the theoretical variance of the distribution?
 
 We first load packages needed for the analysis.
 ```{r load_packages}
@@ -36,9 +31,7 @@ library(tidyr)
 
 
 ## Simulations
-We will show the properties of the distribution of the mean and variance of samples of 40 exponentials.  
-
-First, we simulate the data:
+We will show the properties of the distribution of the mean and variance of samples of 40 simulated random exponentials.  
 ```{r simulate}
 # We simulate S = 1000 samples of N = 40 exponentials each, all with lambda = 0.2
 S <- 1000
@@ -59,7 +52,10 @@ Next, we show our simulated distribution of sample means and compare it to the t
 g <- ggplot(sim, aes(x = means)) + geom_histogram() 
 g <- g + geom_vline(xintercept = mean(means), size = 1, color = "black") + 
      geom_vline(xintercept = median(means), size = 1, color = "red") +
-     labs(title = paste0("The simulated mean (black line) lies just below the theoretical mean of ", 1/lambda," \n The mean and median (red line) are approximately equal")) + theme(plot.title = element_text(face="italic", hjust=0.5))
+     labs(title = paste0("The simulated mean lies just below the ",
+     "theoretical mean of ", 1/lambda,"."," \n The mean (black line) and median ",
+     "(red line) are approximately equal.")) + 
+     theme(plot.title = element_text(face="italic", hjust=0.5))
 print(g)
 ```
   
@@ -83,10 +79,10 @@ The vertical line shows the position of the empirical mean of the distribution o
 
 We can also estimate population variance using the variance of the simulated means. By the properties of variances, $\sigma^2_{population} = N\sigma^2_{mean(N)}$. This estimate gives `r (format(round(popvarsim_means<-N*var(sim$means),2), nsmall = 2))`, which differs by `r (format(round(diffpopvarsim_means <- popvarsim_means - 1/lambda^2,2),nsmall = 2))` from the theoretical, or `r format(round(100*diffpopvarsim_means*lambda^2,2), nsmall = 2)`%.
 
-### Normality
+## Normality
 We now show that the distribution of means is trending away from exponential toward normal.  Our assessment will be primarily graphical.
 ```{r means_and_pop_histograms, fig.cap = "Histograms of 1000 Population Values and 1000 Means of random exponentials", message=FALSE}
-# First, we re-format the data for use in ggplot
+# First, we reformat the data for use in ggplot
 long_sim <- gather(sim, key = Distribution, value = Measure, population:variances)
 # We construct a two-facet plot contrasting the randomly sampled distribution
 # of means with a randomly sampled distribution of the population
@@ -98,44 +94,120 @@ g <- ggplot(data = long_sim_sub, aes(x = Measure)) + geom_histogram() +
 print(g)
 ```
   
-By visual inspection, the population distibution is severely right-skewed and not normal. Therefore, we focus our evaluation of normality on the distribution of means.  
+By visual inspection, the population distribution is severely right-skewed and not normal. Therefore, we focus our evaluation of normality on the distribution of means.  
 
-#### Equality of the Mean and Median
-The Mean and Median of a normal distribution should be equal. This is approximately true for our distribution of means. In **Figure 1**, the black line represents the mean, whereas the red line represents the median. 
+### Equality of the Mean and Median
+The Mean and Median of a normal distribution should be equal. This is approximately true for our distribution of means. In **Figure 1**, the black line represents the mean of means, whereas the red line represents the median. 
 
-#### Quantiles of sample distribution vs. quantiles of standard normal
+### Quantiles of sample distribution vs. quantiles of standard normal
 
 Here we compare the quantiles of the distribution of the mean with those of standard normal.  
 
-##### Explanation of Q-Q plot
-In the plot below, our sample data is plotted on the horizontal axis against correspoding normal quantiles (standard deviations from standard normal) associated with the empirical cumulative densities ($ECD_{q}\:'s$) of the sample data at each quantile. To obtain the probabilities, sample data points $i$ are ascendingly ordered from $1 \:to\: n$, then each point $i$ is related to a cumulative probability associated with the mid-point between points $i$ and $i-1$, calculated as $ECD_{q=5}=(i-0.5)/n$, where $n$ is the number of sampled values. This way, for example, point $i = 500$, which has sample quantile/data value $\approx 5$, is associated with cumulative probability `ECD = pnorm(q=5, mean=5, sd = sqrt(var(x)))`$\approx$`0.4995 = (500-0.5)/1000`, and so on. That relationship is inverted (via `qnorm(p)`) to make connections with the *Standard Normal Quantiles* of the chart.
+#### Explanation of Q-Q plot
+In the plot below, our sample data is plotted on the horizontal axis against corresponding normal quantiles (standard deviations from standard normal) associated with the Empirical Cumulative Densities ($ECD_{q}\:'s$) of the sample data at each quantile. To obtain the cumulative densities, sample data points $i$ are ascendingly ordered from $1 \:to\: n$, then each point $i$ is related to a cumulative probability associated with the mid-point between points $i$ and $i-1$, calculated as $ECD_{q=5}=(i-0.5)/n$, where $n$ is the number of sampled values. This way, for example, point $i = 500$, which has sample quantile (data-value) $\approx 5$, is associated with cumulative probability `ECD = pnorm(q=5, mean=5, sd = sqrt(var(x)))` $\approx$ `0.4995 = (500-0.5)/1000`, and so on. That relationship is inverted (via `qnorm(p)`) to make connections with the *Standard Normal Quantiles* of the chart.
 
 #### Q-Q plot for assessment of normality of the distribution of means
 ```{r quantiles_of_distribution, fig.cap="Plot of data against corresponding quantiles of standard normal"}
-qqnorm(sim$means, main = "Our data is verging on normal, with some\nleft compression and right skew", ylab = "Data Values in the Sample", 
+qqnorm(sim$means, main = paste0("Our data is verging on normal, with some",
+        "\nleft compression and right skew"), ylab = "Data Values in the Sample", 
        xlab = "Normal Quantiles for Empirical Cumulative Density of Data (qnorm(ECD))")
 qqline(sim$means)
 ```
   
-The plot of sample data vs. corresponding quantiles of standard normal should be completely linear if our sample data is completely normal.  However, we see from the Q-Q plot above that as you move down from center (sample quantile ~$1/\lambda$=`r 1/lambda`), values of the data sample below 4 are traversed visibly slower than linearly with corresponding standard normal quantiles corresponding to the same distribution, indicating left compression. And as we move up from center, the data traverses  data values faster than linear with normal quantiles, indicating probablity mass more right skewed than normal.  In summary, the distribution is not exactly normal, but retains relics of the underlying population distribution, which strongly exhibits this compression and skew (see bottom plot in *Figure 3*).
+The plot of sample data vs. corresponding quantiles of standard normal would be completely linear if our sample data was completely normal.  However, we see from the Q-Q plot above that as you move down from center (sample quantile ~$1/\lambda$=`r 1/lambda`), values of the data sample below 4 are traversed more slowly than linear with corresponding standard normal quantiles, indicating left compression (more probability density spread across a smaller range of values). And as we move up from center, the data traverses values faster than linear with the normal quantiles, indicating probability mass more right skewed than normal.  In summary, the distribution is not exactly normal, but retains relics of the underlying population distribution, which strongly exhibits this compression and skew (see bottom plot in *Figure 3*).
 
-However, the linear part of the Q-Q plot between -1 and +1 normal quantiles attests to the fact that the data is still trending toward normal.  To show an example, we compute the number of standard deviations of the mean between -1 and +1 standard normal quantiles from the center of the distribution, which should be 2 for a normal distribution.
+#### Number of standard deviations spanned by two normal quantiles of probability
+
+However, the linear part of the Q-Q plot, between -1 and +1 normal quantiles attests to the fact that the data is still trending toward normal.  For example, we can compute the number of standard deviations of the mean between -1 and +1 standard normal quantiles from the center of the distribution, which should be 2 for a normal distribution.
 ```{r}
 data_quantiles_1_stdnorm <- quantile(sim$means, probs = c(pnorm(q=-1),pnorm(q=1))) 
 (med_plus_minus <- (data_quantiles_1_stdnorm - median(sim$means))/sqrt(var(sim$means)))
 ```
-Above, the value names (percentages) of the vector are associated with one left and right standard normal quantile ($\pm\sqrt{variance(x)}$) from the median, `r round(pnorm(-1),1)` and `r round(pnorm(+1),1)`. To be precise, the number of standard deviations within 1 standard normal quantile of center (`r round(100*(pnorm(q=1)-pnorm(q=-1)),0)`% of the distribution) are just `r format(round(100*(med_plus_minus[2]-med_plus_minus[1] - 2)/2,2),nsmall=2)`% from 2.  This is a primary attribute of a normal distribution.
+The number of standard deviations inside plus or minus 1 normal quantile of center (`r round(100*(pnorm(q=1)-pnorm(q=-1)),0)`%) of our distribution is just `r format(round(100*(med_plus_minus[2]-med_plus_minus[1] - 2)/2,2),nsmall=2)`% from 2. Above, the names attribute of the vector showing the values of the normal quantiles are the cumulative probabilities associated with the quantiles 1 left and 1 right of the median ($\pm\sqrt{variance(x)}$).  
 
-
-# Basic Inferential Data Analysis 
-
+# Basic Inferential Data Analysis  
 ## Overview
+We now analyze the `ToothGrowth` data in the R `datasets` package via basic exploratory  analyses, summaries, and statistical tests to compare tooth growth by `supp` and `dose`. 
+We first load the primary package needed in this analysis:
+```{r}
+library(datasets)
+```
+## Exploratory Data Analysis
+We now perform basic summaries.
+```{r}
+data("ToothGrowth")
+str(ToothGrowth)
+with(ToothGrowth, table(supp, dose))
+```
+The results of `table()` most clarify the structure of the data. There are 10 subjects for each unique combination of `supp` and `dose`.  Guinea pigs were given one of 3 dosages of vitamin C daily (`dose`), in one of two forms (`supp`), and their tooth growth was measured.
 
-We now analyze the `ToothGrowth` data in the R `datasets` package via basic exploratory  analyses, basic summaries, and statistical tests to compare tooth growth by `supp` and `dose`. 
+Since we will just be performing T-tests between the various groups, it makes sense to re-cast `dose` as a factor.
+```{r dose_factor}
+ToothGrowth$dose <- factor(as.character(ToothGrowth$dose), levels = c("0.5", "1", "2"))
+```
+A box-plot reveals the data's major trends (**Figure 5**).
+```{r boxplot, fig.cap="Boxplot of tooth length vs. vitamin delivery at different dosing"}
+g <- ggplot(ToothGrowth, aes(x = supp, y = len, color = supp)) +
+     geom_boxplot() + facet_grid(. ~ dose) + 
+     labs(title="A boxpot clearly depicts underlying trends from both variables") +
+     theme(plot.title = element_text(face="italic", hjust=0.5))
+print(g)
+```
+  
+Teeth appear to grow longer on higher doses, and, except at `dose = 2`, they grow longer on OJ (orange juice) than on VC (ascorbic acid).  
 
-**Review Criteria**
+## Tests of Significance of Inter-Group Differences
+We will test the statistical significance of the above observations using one-sided T-tests. To verify the graphically observed trends, we will take the following strategy:  
 
-  1. Did you perform an exploratory data analysis of at least a single plot or table highlighting basic features of the data?
-  2. Did the student perform some relevant confidence intervals and/or tests?
-  3. Were the results of the tests and/or intervals interpreted in the context of the problem correctly?
-  4. Did the student describe the assumptions needed for their conclusions?
+  1. Test two `dose` effects for each of the two fixed `supp` levels: 
+     * Differences between dose levels 0.5 and 1
+     * Differences between dose levels 1 and 2
+  2. Within each of the three `dose` levels, test the difference between OJ and VC  
+  
+This means we will be carrying out 7 tests. We will extract P-values for each test, and reject the null at level $\alpha$ = 0.025.  
+
+First, we carry out the inter-dose tests...
+```{r dosage_effect}
+# Function for t.tests
+t.test_teeth <- function(dose2, dose1, supp2, supp1){
+        t.test(with(ToothGrowth, len[dose == dose2 & supp == supp2]), 
+               with(ToothGrowth, len[dose == dose1 & supp == supp1]),
+                          alt = "greater")$p.value
+}
+# Construct a data frame associated with the dosage effect
+(dosage.effect <- data.frame(dose.change = c("0.5 to 1", "1 to 2", "0.5 to 1", "1 to 2"),
+                            supp.choice = c("OJ", "OJ", "VC", "VC"),
+                            pvalue = round(c(
+                                    t.test_teeth("1","0.5", "OJ", "OJ"),
+                                    t.test_teeth("2","1","OJ","OJ"),
+                                    t.test_teeth("1","0.5", "VC", "VC"),
+                                    t.test_teeth("2","1","VC","VC")
+                                    ),4)
+                            )
+)
+```
+  
+The upward trend in tooth length with increasing dosage appears significant, whether delivering vitamin C via orange juice or ascorbic acid.
+
+Now, we test supplement changes (choice of OJ or VC) at fixed dosage.
+```{r}
+# Construct and print a data frame associated with the VC to OJ effect
+(VC_to_OJ.effect <- data.frame(dose.choice = c("0.5", "1", "2"),
+                              pvalue = round(c(
+                                    t.test_teeth("0.5","0.5", "OJ", "VC"),
+                                    t.test_teeth("1","1","OJ","VC"),
+                                    t.test_teeth("2","2","OJ","VC")
+                                    ),4)
+                              )
+)
+```
+Substitution of orange juice (OJ) for ascorbic acid (VC) appears significantly associated with increase in tooth length for dosing of 0.5 and 1, but not for 2.
+
+## Key Assumptions
+
+  *  For applicability of the t distribution, the underlying data should theoretically be normal
+  *  The guinea pigs are randomized across the various combinations of `supp` and `dose`
+  *  The staff who measure tooth length are blind to the experimental conditions of each guinea pig
+
+
+
