@@ -21,12 +21,14 @@ This document addresses a project assignment with two parts: Part 1, which is a 
 
 ## Overview
 
-We investigate the *exponential* distribution in R and compare it with the Central Limit Theorem. The distribution is simulated via `rexp(n, lambda)`, and both mean and standard deviation are `1/lambda`. We set `lambda = 0.2` and investigate the distribution of 1000 samples of 40 exponentials each.  
+We investigate the *exponential* distribution in R and compare it with the Central Limit Theorem. The distribution is simulated via `rexp(n, lambda)`, and both mean and standard deviation are $\lambda$. We set `lambda = 0.2` and investigate the distribution of 1000 samples of 40 exponentials each.  
+
+Concretely, the exponential distribution with 'rate' $\lambda$ has the density $f(x) = \lambda e^{-\lambda x}$, so it is very right-skewed.  Therefore this will make for a fairly robust test.
 
 ## Summary Conclusions
 Simulation is consistent with theory.  
 
-  1.  The statistics of the distribution of sample means are approximately equal to their theoretical values, consistent with the properties of means and variances  
+  1.  The statistics of the distribution of sample means are approximately equal to their theoretical values, consistent with the properties of means and variances. We find:  
   
       a.  $\mu_{mean} \approx \mu_{population}$
       b.  $\sigma^2_{mean} \approx \sigma^2_{population(N)}/N$  
@@ -118,7 +120,7 @@ The Mean and Median of a normal distribution should be equal. This is approximat
 Here we compare the quantiles (data values) of the distribution of means with those of standard normal to evaluate the normality.
 
 #### Explanation of Q-Q plot
-In **Figure 4**, our sample data is plotted on the vertical axis, and the associated normal quantiles (standard deviations from center) are plotted on the horizontal axis. The associated normal quantiles are calculated as follows: Empirical Cumulative Densities ($ECD_{q}$ values) of the sample data are calculated, and those Densities are used to calculate a normal quantile by `qnorm(ECD)`. Specifically, to obtain the cumulative densities, sample data points $i$ are ascendingly ordered from $1 \:to\: n$, then each point $i$ is related to a cumulative probability associated with the mid-point between points $i$ and $i-1$, calculated as $ECD_{q}=(i-0.5)/n$, where $n$ is the number of sampled values, and $q$ is the standard normal quantile calculated from each $ECD$. This way, for example, point $i = 500$, which has sample quantile (data value) $\approx 5$, is associated with cumulative probability `0.4995 = (500-0.5)/1000` = $ECD_{q} \approx$ `pnorm(q=0) = 0`, and so on. That relationship is inverted (e.g., via `qnorm(ECD)`) to make connections with the *Standard Normal Quantiles* $q$ on the horizontal axis of the plot.
+In **Figure 4**, our sample data is plotted on the vertical axis, and the associated normal quantiles (standard deviations from center) are plotted on the horizontal axis. The associated normal quantiles are calculated as follows: Empirical Cumulative Densities ($ECD$ values) of the sample data are calculated, and those densities are used to calculate a normal quantile by inverting the normal cumulative density function (I.e, the calculated ECD probability and the normal cumulative density curve are used to obtain a normal quantile. This could be done in `r` via `qnorm(ECD)`.) Concretely, to obtain the cumulative densities, sample data points $i$ are ascendingly ordered from $1 \:to\: n$, then each point $i$ is related to a cumulative probability associated with the mid-point between points $i$ and $i-1$, calculated as $ECD=(i-0.5)/n$, where $n$ is the number of sampled values. This way, for example, point $i = 500$, which in our data sample has sample quantile (data value) $\approx 5$, is associated with cumulative probability `(500-0.5)/1000 = 0.4995` = $ECD = Normal\:Cumulative\:Density\:Function (q)$ (e.g., `pnorm(q)` in `r`). That function is inverted (e.g., via `qnorm(ECD)` in `r`) to obtain the $q$, or standard normal quantile value (in this example $\approx 0$). 
 
 #### Q-Q plot for assessment of normality of the distribution of means
 ```{r quantiles_of_distribution, fig.cap="Plot of data against corresponding quantiles of standard normal"}
