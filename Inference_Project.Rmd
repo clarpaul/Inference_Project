@@ -40,9 +40,12 @@ Simulation is consistent with theory.
 
 ## Preliminaries
 We first load packages needed for the analysis.
-```{r load_packages}
-library(ggplot2)
-library(tidyr)
+```{r load_packages, message=FALSE, results='hide'}
+rqd_pkgs <- c("ggplot2", "tidyr") # ggplot(), gather()
+pkgs_to_install <- rqd_pkgs[!rqd_pkgs %in% installed.packages()[,1]]
+if (length(pkgs_to_install)) install.packages(pkgs_to_install)
+lapply(rqd_pkgs, require, character.only = TRUE)
+
 ```
 
 
@@ -150,10 +153,13 @@ We now analyze the `ToothGrowth` data in the R `datasets` package via basic expl
   2.  At lower doses (0.5 mm and 1 mm), delivery via orange juice appears more effective than ascorbic acid.  However, we see no such impact at the 2 mm dose.  
 
 ## Preliminaries
-We first load the primary package needed in this analysis and the specific dataset we will use. Note that for this analysis we also make use of ggplot2, loaded for part I of this project.
-```{r}
-library(datasets)
-data("ToothGrowth")
+We first load a package and dataset needed in this analysis. Note that below we also make use of ggplot2, loaded for part I.
+```{r load_datasets, message=FALSE, results='hide'}
+rqd_pkgs <- "datasets" # source for "ToothGrowth" data
+pkgs_to_install <- rqd_pkgs[!rqd_pkgs %in% installed.packages()[,1]]
+if (length(pkgs_to_install)) install.packages(pkgs_to_install)
+lapply(rqd_pkgs, require, character.only = TRUE)
+data("ToothGrowth") # load "ToothGrowth" data
 ```
 ## Exploratory Data Analysis
 We now perform basic summaries.
